@@ -1,6 +1,5 @@
 # Markov chain text generator
 
-## Introduction
 This repository contains a simple yet powerful tool for generating text using a Markov chain algorithm. The tool is implemented in a single HTML file (`markov.html`) which uses JavaScript to create random, procedurally generated text based on an input text provided by the user.
 
 ## How It Works
