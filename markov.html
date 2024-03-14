@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+<div>
+  <h3>Text input:</h3>
+  <textarea id="input" rows="10" cols="100">Logic will get you from A to B. Imagination will take you everywhere. Insanity: doing the same thing over and over again and expecting different results. We cannot solve our problems with the same thinking we used when we created them. Learn from yesterday, live for today, hope for tomorrow. The important thing is not to stop questioning. The true sign of intelligence is not knowledge but imagination. Try not to become a man of success, but rather try to become a man of value. The only source of knowledge is experience. When you are courting a nice girl an hour seems like a second. When you sit on a red-hot cinder a second seems like an hour. That's relativity. Only two things are infinite, the universe and human stupidity, and I'm not sure about the former. Once we accept our limits, we go beyond them.</textarea>
+  <h3>Text output:</h3>
+  <textarea id="output" rows="10" cols="100"></textarea>
+  <p><button onclick="markovTextGenerator()">Generate text!</button></p>
+</div>
+
+<script>
+function markovTextGenerator(){
+  const inputText = document.getElementById('input').value;
+  const inputArray = inputText.match(/[\w'’]+[:]?|[.,!?;]+/g);
+
+  const markovChain = new Map();
+
+  for (let i = 0; i < inputArray.length - 1; i++) {
+    const word = inputArray[i].toLowerCase();
+    const nextWord = inputArray[i + 1].toLowerCase();
+
+    if (!markovChain.has(word)) {
+      markovChain.set(word, [nextWord]);
+    } else {
+      markovChain.get(word).push(nextWord);
+    }
+  }
+
+  const words = Array.from(markovChain.keys());
+  let word = words[Math.floor(Math.random() * words.length)];
+  let result = '';
+
+  for (let i = 0; i < 150; i++) {
+    const possibleNextWords = markovChain.get(word.toLowerCase());
+    if (!possibleNextWords || possibleNextWords.length === 0) {
+      break;
+    }
+
+    const nextWord = possibleNextWords[Math.floor(Math.random() * possibleNextWords.length)];
+
+    if (/[\w'’]/.test(nextWord)) {
+      result += word + ' ';
+    } else {
+      result += word;
+    }
+
+    word = nextWord;
+  }
+
+  result = result.charAt(0).toUpperCase() + result.slice(1);
+  result = result.replace(/([.!?]\s+)([a-z])/g, (match, p1, p2) => p1 + p2.toUpperCase());
+  result = result.replace(/\si\s/g, " I ").replace(/\si'(\w+)/g, " I'$1");
+
+  document.getElementById('output').value = result.trim();
+}
+</script>
+
+</body>
+</html>
