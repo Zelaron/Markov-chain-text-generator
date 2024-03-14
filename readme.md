@@ -14,6 +14,6 @@ The Markov Chain Text Generator works by taking an input string of text and brea
 To use the Markov Chain Text Generator, simply clone or download this repository and open the `markov.html` file in any modern web browser.
 
 ```bash
-git clone https://github.com/Zelaron/Markov-text-generator.git
-cd markov-text-generator
+git clone https://github.com/Zelaron/Markov-chain-text-generator.git
+cd Markov-chain-text-generator
 open markov.html
