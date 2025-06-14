@@ -16,27 +16,23 @@ generateBtn.onclick = () => {
   const tokens = input.value.match(/[\w'’]+[:]?|[.,!?;]+/g);
   if (!tokens) return;
 
-  const chain = tokens.slice(0, -1).reduce((acc, token, idx) => {
-    const key = token.toLowerCase();
-    const next = tokens[idx + 1].toLowerCase();
-    (acc.get(key) || acc.set(key, []).get(key)).push(next);
-    return acc;
-  }, new Map());
-
-  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+  const chain = tokens.slice(0, -1).reduce((acc, token, i) => (
+    (acc.get(token.toLowerCase()) || acc.set(token.toLowerCase(), []).get(token.toLowerCase()))
+      .push(tokens[i + 1].toLowerCase()), acc
+  ), new Map());
   
-  let word = rand([...chain.keys()]);
-  let result = '';
+  const rand = arr => arr[~~(Math.random() * arr.length)];
+  
+  let word, followers;
+  while (!/\w/.test(word = rand([...chain.keys()])));
 
-  for (let k = 0; k < 150; k++) {
-    const followers = chain.get(word.toLowerCase());
-    if (!followers?.length) break;
-    const nextWord = rand(followers);
-    result += word + (/\w/.test(nextWord) ? ' ' : '');
-    word = nextWord;
+  const result = [word];
+  while (result.length < 150 && (followers = chain.get(word))?.length) {
+    result.push(word = rand(followers));
   }
   
-  output.value = (result + word)
+  output.value = result.join(' ')
+    .replace(/\s+([.,!?;:])/g, '$1')
     .replace(/^./, c => c.toUpperCase())
     .replace(/([.!?]\s+)([a-z])/g, (_, p1, p2) => p1 + p2.toUpperCase())
     .replace(/\s(i)(?=\s|')/g, ' I')
