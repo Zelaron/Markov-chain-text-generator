@@ -12,39 +12,36 @@
   <p><button id="generateBtn">Generate text!</button></p>
 
 <script>
-document.getElementById('generateBtn').addEventListener('click', () => {
-  const input = document.getElementById('input').value;
-  const tokens = input.match(/[\w'’]+[:]?|[.,!?;]+/g);
+generateBtn.onclick = () => {
+  const tokens = input.value.match(/[\w'’]+[:]?|[.,!?;]+/g);
   if (!tokens) return;
 
-  const chain = tokens.slice(0, -1).reduce((acc, token, i) => {
+  const chain = tokens.slice(0, -1).reduce((acc, token, idx) => {
     const key = token.toLowerCase();
-    const next = tokens[i + 1].toLowerCase();
-    if (!acc.has(key)) acc.set(key, []);
-    acc.get(key).push(next);
+    const next = tokens[idx + 1].toLowerCase();
+    (acc.get(key) || acc.set(key, []).get(key)).push(next);
     return acc;
   }, new Map());
 
-  const keys = [...chain.keys()];
-  let word = keys[Math.floor(Math.random() * keys.length)];
+  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+  
+  let word = rand([...chain.keys()]);
   let result = '';
 
-  for (let i = 0; i < 150; i++) {
+  for (let k = 0; k < 150; k++) {
     const followers = chain.get(word.toLowerCase());
     if (!followers?.length) break;
-
-    const nextWord = followers[Math.floor(Math.random() * followers.length)];
+    const nextWord = rand(followers);
     result += word + (/\w/.test(nextWord) ? ' ' : '');
     word = nextWord;
   }
-  result += word; // Append the final word
-
-  document.getElementById('output').value = result
-    .replace(/^./, c => c.toUpperCase()) // Capitalize first letter
+  
+  output.value = (result + word)
+    .replace(/^./, c => c.toUpperCase())
     .replace(/([.!?]\s+)([a-z])/g, (_, p1, p2) => p1 + p2.toUpperCase())
-    .replace(/\s(i)(?=\s|')/g, ' I') // Capitalize "i" when it's a word
+    .replace(/\s(i)(?=\s|')/g, ' I')
     .trim();
-});
+};
 </script>
 </body>
 </html>
