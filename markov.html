@@ -1,43 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Markov chain text generator</title>
+  <title>Markov chain text generator (2nd Order - Fixed)</title>
 </head>
 <body>
-
   <h3>Text input:</h3>
-  <textarea id="input" rows="10" cols="100">Logic will get you from A to B. Imagination will take you everywhere. Insanity: doing the same thing over and over again and expecting different results. We cannot solve our problems with the same thinking we used when we created them. Learn from yesterday, live for today, hope for tomorrow. The important thing is not to stop questioning. The true sign of intelligence is not knowledge but imagination. Try not to become a man of success, but rather try to become a man of value. The only source of knowledge is experience. When you are courting a nice girl an hour seems like a second. When you sit on a red-hot cinder a second seems like an hour. That's relativity. Only two things are infinite, the universe and human stupidity, and I'm not sure about the former. Once we accept our limits, we go beyond them.</textarea>
+  <textarea id="input" rows="10" cols="100">Logic will get you from A to B. Imagination will take you everywhere. Insanity: doing the same thing over and over again and expecting different results. We cannot solve our problems with the same thinking we used when we created them. Learn from yesterday, live for today, hope for tomorrow. The important thing is not to stop questioning. The true sign of intelligence is not knowledge but imagination. Try not to become a man of success, but rather try to become a man of value. The only source of knowledge is experience. When you are courting a nice girl an hour seems like a second. When you sit on a red-hot cinder a second seems like an hour. That's relativity. Only two things are infinite, a universe and human stupidity, and I'm not sure about the former. Once we accept our limits, we go beyond them.</textarea>
   <h3>Text output:</h3>
   <textarea id="output" rows="10" cols="100"></textarea>
-  <p><button id="generateBtn">Generate text!</button></p>
-
+  <p>
+    <label for="order">Order (context words):</label>
+    <select id="order">
+      <option value="1" selected>1 (Original)</option>
+      <option value="2">2 (More coherent)</option>
+      <option value="3">3 (More repetitive)</option>
+    </select>
+    <button id="generateBtn">Generate text!</button>
+  </p>
 <script>
-generateBtn.onclick = () => {
-  const tokens = input.value.match(/[\w'’]+[:]?|[.,!?;]+/g);
-  if (!tokens) return;
-
-  const chain = tokens.slice(0, -1).reduce((acc, token, i) => (
-    (acc.get(token.toLowerCase()) || acc.set(token.toLowerCase(), []).get(token.toLowerCase()))
-      .push(tokens[i + 1].toLowerCase()), acc
-  ), new Map());
-  
+  const chainCache = new Map();
   const rand = arr => arr[~~(Math.random() * arr.length)];
   
-  let word, followers;
-  while (!/\w/.test(word = rand([...chain.keys()])));
+  function getChain(n) {
+    if (chainCache.has(n)) return chainCache.get(n);
 
-  const result = [word];
-  while (result.length < 150 && (followers = chain.get(word))?.length) {
-    result.push(word = rand(followers));
+    const tokens = input.value.match(/[\w'’]+[:]?|[.,!?;]+/g);
+    if (!tokens) return null;
+
+    const chain = new Map();
+    for (let i = 0; i < tokens.length - n; i++) {
+      const key = tokens.slice(i, i + n).join(' ').toLowerCase();
+      const follower = tokens[i + n].toLowerCase();
+      if (!chain.has(key)) chain.set(key, []);
+      chain.get(key).push(follower);
+    }
+    chainCache.set(n, chain);
+    return chain;
   }
-  
-  output.value = result.join(' ')
-    .replace(/\s+([.,!?;:])/g, '$1')
-    .replace(/^./, c => c.toUpperCase())
-    .replace(/([.!?]\s+)([a-z])/g, (_, p1, p2) => p1 + p2.toUpperCase())
-    .replace(/\s(i)(?=\s|')/g, ' I')
-    .trim();
-};
+
+  input.oninput = () => chainCache.clear();
+
+  generateBtn.onclick = () => {
+    const n = parseInt(order.value, 10);
+    const chain = getChain(n);
+    if (!chain || chain.size === 0) {
+      output.value = "Could not build chain. Try more input text or a lower order.";
+      return;
+    }
+
+    const startKeys = [...chain.keys()].filter(key => /^\w/.test(key));
+    if (startKeys.length === 0) {
+      output.value = "Could not find a valid starting point. Try a lower order.";
+      return;
+    }
+
+    const result = rand(startKeys).split(' ');
+    while (result.length < 150) {
+      const key = result.slice(-n).join(' ').toLowerCase();
+      const followers = chain.get(key);
+      
+      if (followers?.length) {
+        // Happy path: a follower was found, so continue the chain.
+        result.push(rand(followers));
+      } else {
+        // Dead end: pick a new random starting point to continue.
+        result.push(...rand(startKeys).split(' '));
+      }
+    }
+
+    output.value = result.join(' ')
+      .replace(/\s+([.,!?;:])/g, '$1')
+      .replace(/\bi\b/g, 'I')
+      .replace(/(^|(?<=[.!?]\s))[a-z]/g, m => m.toUpperCase())
+      .trim();
+  };
 </script>
 </body>
 </html>
