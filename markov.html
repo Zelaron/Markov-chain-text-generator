@@ -15,7 +15,6 @@
 <script>
 const cache = new Map(), rand = a => a[~~(Math.random() * a.length)];
 input.oninput = () => cache.clear();
-
 generateBtn.onclick = () => {
   const n = +order.value;
   let chain = cache.get(n);
@@ -28,20 +27,16 @@ generateBtn.onclick = () => {
     }
   }
   if (!chain.size) return output.value = "Could not build chain. Try more input text or a lower order.";
-
   const starts = [...chain.keys()].filter(k => /^\w/.test(k));
   if (!starts.length) return output.value = "Could not find a valid starting point. Try a lower order.";
-
   const r = rand(starts).split(' ');
   while (r.length < 150) {
     const f = chain.get(r.slice(-n).join(' ').toLowerCase());
     r.push(...(f?.length ? [rand(f)] : rand(starts).split(' ')));
   }
-
   output.value = r.join(' ')
     .replace(/\s+([.,!?;:])/g, '$1')
     .replace(/\bi\b/g, 'I')
-    .replace(/(^|(?<=[.!?]\s))[a-z]/g, m => m.toUpperCase())
-    .trim();
+    .replace(/(^|(?<=[.!?]\s))[a-z]/g, m => m.toUpperCase()).trim();
 };
 </script>
